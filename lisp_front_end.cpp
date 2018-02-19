@@ -52,6 +52,11 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 		int atom_type = get_atom_type(start_token);
 		SExp* atom = (atom_type == INT_ATOM)? new SExp(stoi(start_token)): new SExp(start_token);
 		return atom;
+	} else if(start_token_type == O_BRACKET && end_token_type == C_BRACKET && (end_pos - start_pos) == 1) {
+		// This is the NIL atom
+		string nil = "NIL";
+		SExp* atom = new SExp(nil);
+		return atom;
 	} else if(start_token_type == O_BRACKET && end_token_type == C_BRACKET) {
 		// This can be either a dot notation or a list notation
 		// We need to find the position of the dot or whitespace
@@ -84,7 +89,7 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 							);
 				// Update next position if any
 				temp_start_pos = next_space_pos + 1;
-				if(positions[temp_start_pos] != -1 && token_type(tokens[temp_start_pos]) == O_BRACKET)
+				if(positions[temp_start_pos] != -1 && temp_start_pos <= end_pos && token_type(tokens[temp_start_pos]) == O_BRACKET)
 					next_space_pos = positions[temp_start_pos] + 1;
 				else
 					next_space_pos = temp_start_pos + 1;
@@ -106,6 +111,20 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 			string nil = "NIL";
 			current_element->set_right(new SExp(nil));
 			return first_element;
+		} else if(pos_dot_or_space == end_pos) {
+			// List expression with only 1 element so call and save it with nil
+			int temp_start_pos = start_pos + 1;
+			int temp_end_pos = -1;
+			if(positions[temp_start_pos] != -1 && token_type(tokens[temp_start_pos]) == O_BRACKET)
+				temp_end_pos = positions[temp_start_pos];
+			else
+				temp_end_pos = temp_start_pos;
+			string nil = "NIL";
+			SExp* nil_atom = new SExp(nil);
+			SExp* non_atom = new SExp(
+						generate_binary_tree_from_tokens(tokens, positions, temp_start_pos, temp_end_pos),
+						nil_atom);
+			return non_atom;
 		} else {
 			// Print the unexpected result
 			print_tokens(tokens);
