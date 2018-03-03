@@ -19,6 +19,7 @@ using namespace std;
 	6 - string
 */
 
+const int INVALID_TOK = 0;			// Invalid token
 const int O_BRACKET = 1;		// Opening bracket
 const int C_BRACKET = 2;		// Closing bracket
 const int DOT = 3;				// Dot symbol

@@ -33,13 +33,25 @@ vector<string> s_tokenize(string& input) {
 				i++;
 			}
 			c = input[i];
+			if(!isdigit(c)) {
+				cerr << "Invalid character in the input string: " << c << ":" << int(c) << endl;
+				return vector<string>();
+			}
 			int number = 0;
+			bool i_incremented_flag = false;
 			while(isdigit(c)) {
 				token += c;
 				i++;
+				i_incremented_flag = true;
 				c = input[i];
 			}
-			i--;
+			// We need to check that the next character is either space, bracket or . or end of sentence
+			if(c != '(' && c != ')' && c != '.' && !isspace(c) && c != 0) {
+				cerr << "Invalid character in the input string: " << c << ":" << int(c) << endl;
+				return vector<string>();
+			}
+			if(i_incremented_flag)
+				i--;
 		} else if(isalpha(c)) {
 			// In an internal loop find the symbolic entity
 			token = "";
@@ -48,9 +60,15 @@ vector<string> s_tokenize(string& input) {
 				i++;
 				c = input[i];
 			}
+			// We need to check that the next character is either space, bracket or .
+			if(c != '(' && c != ')' && c != '.' && !isspace(c) && c != 0) {
+				cerr << "Invalid character in the input string: " << c << endl;
+				return vector<string>();
+			}
 			i--;
 		} else {
 			cerr << "Invalid character in the input string: " << c << endl;
+			return vector<string>();
 		}
 		tokens.push_back(token);
 	}
@@ -66,6 +84,14 @@ int token_type(string token) {
 		return DOT;
 	if(!token.compare(" "))
 		return WHITESPACE;
+	// Check if integer
+	// bool is_int = 
+	// for(int i = 0; i < 0; i++) {
+	// 	char c = token[i];
+	// 	if(!isdigit(c)) {
+	// 		if(i==0 && )
+	// 	}
+	// }
 	return ATOM;
 }
 
@@ -122,11 +148,20 @@ vector<int> compute_bracket_locations(vector<string>& tokens) {
 		if(current_token_type == O_BRACKET)
 			bracket_positions.push(i);
 		else if(current_token_type == C_BRACKET) {
+			if(bracket_positions.empty()) {
+				cout << "Error!! Extra closing bracket" << endl;
+				return vector<int>();
+			}
 			int o_bracket_pos = bracket_positions.top();
 			bracket_positions.pop();
 			positions[i] = o_bracket_pos;
 			positions[o_bracket_pos] = i;
 		}
+	}
+	if(!bracket_positions.empty()) {
+		// Still some opening bracket left in the tokens
+		cout << "Error!! Extra opening bracket" << endl;
+		return vector<int>();
 	}
 	return positions;
 }

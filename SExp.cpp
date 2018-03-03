@@ -18,9 +18,23 @@ SExp::SExp(string& str) {
 }
 
 SExp::SExp(SExp* lsexp, SExp* rsexp) {
+	if(lsexp == NULL || rsexp == NULL)
+		throw std::invalid_argument("one of left or right s-expression is NULL");
 	type = NON_ATOM;
 	left = lsexp;
 	right = rsexp;
+}
+
+map<string, SExp*> SExp::symbols;
+SExp* SExp::get_symbol(string& str) {
+	if(symbols.find(str) == symbols.end()) {
+		// cout << endl << endl << "CREATING A NEW ATOM FOR " << str << endl << endl << endl;
+		SExp* new_symbolic_atom = new SExp(str);
+		symbols[str] = new_symbolic_atom;
+		return new_symbolic_atom;
+	}
+	// cout << endl << endl << "RETURNING FROM MAP INSTEAD " << str << endl << endl << endl;
+	return symbols[str];
 }
 
 int SExp::get_type() {
@@ -49,16 +63,8 @@ SExp* SExp::get_left() {
 	return left;
 }
 
-void SExp::set_left(SExp* lsexp) {
-	left = lsexp;
-}
-
 SExp* SExp::get_right() {
 	return right;
-}
-
-void SExp::set_right(SExp* rsexp) {
-	right = rsexp;
 }
 
 string SExp::get_dot_notation() {
@@ -78,6 +84,8 @@ string SExp::get_dot_notation() {
 		dot_notation += ")";
 	} else {
 		cerr << "ERROR!!" << endl;
+	 	cerr << "SExp type = " << type << endl;
+		return "";
 	}
 	return dot_notation;
 }
