@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <stdexcept>
 using namespace std;
 
 const int INTEGER_ATOM = 1;
