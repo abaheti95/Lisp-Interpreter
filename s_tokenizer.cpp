@@ -24,12 +24,14 @@ vector<string> s_tokenize(string& input) {
 		} else if(c == '+' || c == '-' || isdigit(c)) {
 			// In an internal loop compute the number
 			int sign = 0;
-			if(c == '-')
+			if(c == '-') {
 				token = "-";
-			else if(c == '+')
+				sign = -1;
+			} else if(c == '+') {
 				token = "+";
+				sign = 1;
+			}
 			if(sign != 0) {
-				token = "";
 				i++;
 			}
 			c = input[i];

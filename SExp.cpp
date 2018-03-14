@@ -89,3 +89,80 @@ string SExp::get_dot_notation() {
 	}
 	return dot_notation;
 }
+
+bool SExp::atom() {
+	return type == INTEGER_ATOM || type == SYMBOLIC_ATOM;
+}
+
+bool SExp::sym_atom() {
+	return type == SYMBOLIC_ATOM;
+}
+
+bool SExp::int_atom() {
+	return type == INTEGER_ATOM;
+}
+
+bool SExp::null() {
+	return (type == SYMBOLIC_ATOM) && !(name.compare("NIL"));
+}
+
+bool SExp::isT() {
+	return (type == SYMBOLIC_ATOM) && !(name.compare("T"));
+}
+
+bool SExp::eq(SExp* atom) {
+	if(type == atom->type) {
+		if(type == INTEGER_ATOM)
+			return val == atom->get_value();
+		else if(type == SYMBOLIC_ATOM)
+			return !name.compare(atom->get_name());
+		else
+			// TODO: Throw error
+			return false;
+	}
+	return false;
+}
+
+SExp* SExp::car() {
+	if(type == NON_ATOM)
+		return left;
+	return NULL;
+}
+
+SExp* SExp::cdr() {
+	if(type == NON_ATOM)
+		return right;
+	return NULL;
+}
+
+bool SExp::in(SExp* list) {
+	if(list->null())
+		return false;
+	else if(this->eq(list->car()->car())) {
+		return true;
+	} else {
+		return in(list->cdr());
+	}
+}
+
+SExp* SExp::getval(SExp* list) {
+	if(list->null()) {
+		// This is error. Atom not present in the list
+		return NULL;
+	} else if(this->eq(list->car()->car())) {
+		return list->car()->cdr();
+	} else {
+		return getval(list->cdr());
+	}
+}
+
+int SExp::len() {
+	if(this->null()) {
+		return 0;
+	} else if(type == NON_ATOM) {
+		return 1 + this->cdr()->len();
+	} else {
+		// No NIL found. Not a list
+		return -10000000;
+	}
+}

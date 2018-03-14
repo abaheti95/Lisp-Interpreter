@@ -7,6 +7,7 @@
 #include <cctype>
 #include "s_tokenizer.h"
 #include "SExp.h"
+#include "lisp_back_end.h"
 
 using namespace std;
 
@@ -54,7 +55,7 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 		return atom;
 	} else if(start_token_type == O_BRACKET && end_token_type == C_BRACKET && (end_pos - start_pos) == 1) {
 		// This is the NIL atom
-		string nil = "NIL";
+		// string nil = "NIL";
 		SExp* atom = SExp::get_symbol(nil);
 		return atom;
 	} else if(start_token_type == O_BRACKET && end_token_type == C_BRACKET) {
@@ -103,7 +104,7 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 			SExp* current_element = NULL;
 			for(int i = list.size() - 1; i >= 0; i--) {
 				if(i == (list.size() - 1)) {
-					string nil = "NIL";
+					// string nil = "NIL";
 					SExp* nil_atom = SExp::get_symbol(nil);
 					current_element = new SExp(list[i], nil_atom);
 				} else {
@@ -119,7 +120,7 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 				temp_end_pos = positions[temp_start_pos];
 			else
 				temp_end_pos = temp_start_pos;
-			string nil = "NIL";
+			// string nil = "NIL";
 			SExp* nil_atom = SExp::get_symbol(nil);
 			SExp* non_atom;
 			try {
@@ -156,7 +157,7 @@ SExp* generate_binary_tree_from_tokens(vector<string> &tokens, vector<int> posit
 }
 
 
-int main() {
+/*int main() {
 	string raw_s_expression = "";
 	bool flag = true;
 	while(flag) {
@@ -193,6 +194,61 @@ int main() {
 			// cout << "Trying to generate dot notation for : " << raw_s_expression << endl;
 			string exp_dot_notation = exp->get_dot_notation();
 			cout << "Dot Notation: " << exp_dot_notation << endl;
+			raw_s_expression = "";
+		} else {
+			raw_s_expression += line;
+		}
+	}
+}*/
+string nil = "NIL";
+string T = "T";
+SExp* dlist;
+
+// New main which tests LISP evaluation
+int main() {
+	string raw_s_expression = "";
+	dlist = SExp::get_symbol(nil);
+	bool flag = true;
+	while(flag) {
+		string line="";
+		getline(cin, line);
+		if(!line.empty() && *line.rbegin() == '\r') {
+			line.erase( line.length()-1, 1);
+		}
+		if(!line.compare("$") || !line.compare("$$")) {
+			// Last s-expression. End the loop after processing this
+			if(!line.compare("$$"))
+				flag = false;
+			// we have the complete raw_s_expression.
+			// Send it for tokenization
+			cout << "raw:" << raw_s_expression << endl;
+			vector<string> tokens = s_tokenize(raw_s_expression);
+			if(tokens.empty()) {
+				raw_s_expression = "";
+				continue;
+			}
+			// print_tokens(tokens);
+			vector<string> filtered_tokens = filter_whitespace_tokens(tokens);
+			// print_tokens(filtered_tokens);
+			vector<int> positions = compute_bracket_locations(filtered_tokens);
+			if(positions.empty()) {
+				raw_s_expression = "";
+				continue;
+			}
+			SExp* exp = generate_binary_tree_from_tokens(filtered_tokens, positions, 0, filtered_tokens.size()-1);
+			if(exp == NULL) {
+				raw_s_expression = "";
+				continue;
+			}
+			// cout << "Trying to generate dot notation for : " << raw_s_expression << endl;
+			// string exp_dot_notation = exp->get_dot_notation();
+			// cout << "Dot Notation: " << exp_dot_notation << endl;
+			SExp* nil_atom = SExp::get_symbol(nil);
+			SExp* result = eval(exp, nil_atom);
+			if(result != NULL) {
+				// cout << "Original: " << exp->get_dot_notation() << endl;
+				cout << "Result: " << result->get_dot_notation() << endl << endl;
+			}
 			raw_s_expression = "";
 		} else {
 			raw_s_expression += line;

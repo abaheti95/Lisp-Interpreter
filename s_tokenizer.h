@@ -1,3 +1,6 @@
+#ifndef S_TOKENIZER_H
+#define S_TOKENIZER_H
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -32,3 +35,5 @@ vector<string> filter_whitespace_tokens(vector<string>& tokens);
 // Given tokens for every opening bracket find the position of its corresponding closing bracket
 // and similartly for every closing bracket find the position of its corresponding opening bracket
 vector<int> compute_bracket_locations(vector<string>& tokens);
+
+#endif
