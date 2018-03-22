@@ -1,8 +1,14 @@
 #include "lisp_back_end.h"
 
+string itostring(int i) {
+	std::stringstream sstm;
+	sstm << i;
+	return sstm.str();
+}
+
 SExp* evlis(SExp* input, SExp* alist) {
 	if(input == NULL) {
-		cerr << "Error: WHY is this happenning??" << endl;
+		// throw LispException("Error: WHY is this happenning??");
 		return NULL;
 	}
 	if (input->null()) {
@@ -11,7 +17,7 @@ SExp* evlis(SExp* input, SExp* alist) {
 		SExp* first = eval(input->car(), alist);
 		SExp* second = evlis(input->cdr(), alist);
 		if(first == NULL || second == NULL) {
-			cerr << "Error: Couldn't evaluate all the arguments in the list" << endl;
+			throw LispException("Error: Couldn't evaluate all the arguments in the list");
 			return NULL;
 		}
 		SExp* out = new SExp(first, second);
@@ -25,7 +31,7 @@ bool check_evcon(SExp* be_input) {
 		return true;
 	} else if(be_input->car()->len() != 2) {
 		// Throw Error
-		cerr << "Error: All elements of COND should be lists of size 2" << endl;
+		throw LispException("Error: All elements of COND should be lists of size 2");
 		return false;
 	} else {
 		return check_evcon(be_input->cdr());
@@ -35,13 +41,13 @@ bool check_evcon(SExp* be_input) {
 SExp* evcon(SExp* be_input, SExp* alist) {
 	if (be_input->null()) {
 		// Throw error
-		cerr << "Error: None of the boolean expressions outputted T" << endl;
+		throw LispException("Error: None of the boolean expressions outputted T");
 		return NULL;
 	} else {
 		// Evaluate the first boolean expression in be_input
 		SExp* be = eval(be_input->car()->car(), alist);
 		if(be == NULL) {
-			cerr << "Error: A boolean expression in COND is not a well formed LISP expression" << endl;
+			throw LispException("Error: A boolean expression in COND is not a well formed LISP expression");
 			return NULL;
 		}
 		if(be->null()) {
@@ -50,7 +56,7 @@ SExp* evcon(SExp* be_input, SExp* alist) {
 			if(be_input->car()->len() == 2) {
 				return eval(be_input->car()->cdr()->car(), alist);
 			} else {
-				cerr << "Error: COND is not well formed" << endl;
+				throw LispException("Error: COND is not well formed");
 				return NULL;
 			}
 		}
@@ -64,7 +70,7 @@ SExp* addpairs(SExp* parameters_list, SExp* x, SExp* alist) {
 		// Only one of them is null other is not
 		// Incorrect number of parameters passed
 		// Throw error
-		cerr << "Error: Incorrect number of parameters passed to the function" << endl;
+		throw LispException("Error: Incorrect number of parameters passed to the function");
 		return NULL;
 	}
 	// Both are non null
@@ -84,39 +90,39 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 		int length_x = x->len();
 		if(length_x < 0) {
 			// Throw error. X is not a list
-			cerr << "Error: List of parameters is not a list" << endl;
+			throw LispException("Error: List of parameters is not a list");
 			return NULL;
 		}
 		if(!f_name.compare("CAR")) {
 			if(length_x != 1) {
-				cerr << "Error: Expected number of parameters to CAR = 1, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to CAR = 1, given " + itostring(length_x));
 				return NULL;
 			}
 			if (x->car()->atom()) {
-				cerr << "Error: Input given to CAR is an ATOM" << endl;
+				throw LispException("Error: Input given to CAR is an ATOM");
 				return NULL;
 			}
 			return x->car()->car();
 		} else if(!f_name.compare("CDR")) {
 			if(length_x != 1) {
-				cerr << "Error: Expected number of parameters to CDR = 1, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to CDR = 1, given " + itostring(length_x));
 				return NULL;
 			}
 			if (x->car()->atom()) {
-				cerr << "Error: Input given to CDR is an ATOM" << endl;
+				throw LispException("Error: Input given to CDR is an ATOM");
 				return NULL;
 			}
 			return x->car()->cdr();
 		} else if(!f_name.compare("CONS")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to CONS = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to CONS = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* out = new SExp(x->car(), x->cdr()->car());
 			return out;
 		} else if(!f_name.compare("ATOM")) {
 			if(length_x != 1) {
-				cerr << "Error: Expected number of parameters to ATOM = 1, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to ATOM = 1, given " + itostring(length_x));
 				return NULL;
 			}
 			if(x->car()->atom()) {
@@ -125,22 +131,16 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			return SExp::get_symbol(nil);
 		} else if(!f_name.compare("INT")) {
 			if(length_x != 1) {
-				cerr << "Error: Expected number of parameters to INT = 1, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to INT = 1, given " + itostring(length_x));
 				return NULL;
 			}
-			if(x->car()->atom()) {
-				if(x->car()->int_atom())
-					return x->car();
-				else
-					return SExp::get_symbol(nil);
-			} else {
-				// Not an Atom
-				cout << x->car()->get_dot_notation() << " is not an atom" << endl;
-				return NULL;
+			if(x->car()->int_atom()) {
+				return SExp::get_symbol(T);
 			}
+			return SExp::get_symbol(nil);
 		} else if(!f_name.compare("NULL")) {
 			if(length_x != 1) {
-				cerr << "Error: Expected number of parameters to NULL = 1, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to NULL = 1, given " + itostring(length_x));
 				return NULL;
 			}
 			if(x->car()->null()) {
@@ -149,7 +149,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			return SExp::get_symbol(nil);
 		} else if(!f_name.compare("EQ")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to EQ = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to EQ = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -162,14 +162,14 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			} else if(first == second) {		// Return T if they are the same pointer
 				return SExp::get_symbol(T);
 			} else if(!first->atom() || !second->atom()) {
-				cerr << "Error: EQ can only handle atomic inputs" << endl;
+				throw LispException("Error: EQ can only handle atomic inputs");
 				return NULL;
 			} else {
 				return SExp::get_symbol(nil);
 			}
 		} else if(!f_name.compare("PLUS")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to PLUS = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to PLUS = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -183,7 +183,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("MINUS")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to MINUS = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to MINUS = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -197,7 +197,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("TIMES")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to TIMES = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to TIMES = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -211,7 +211,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("QUOTIENT")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to QUOTIENT = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to QUOTIENT = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -225,7 +225,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("REMAINDER")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to REMAINDER = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to REMAINDER = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -239,7 +239,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("LESS")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to LESS = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to LESS = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -255,7 +255,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			}
 		} else if(!f_name.compare("GREATER")) {
 			if(length_x != 2) {
-				cerr << "Error: Expected number of parameters to GREATER = 2, given " << length_x << endl;
+				throw LispException("Error: Expected number of parameters to GREATER = 2, given " + itostring(length_x));
 				return NULL;
 			}
 			SExp* first = x->car();
@@ -273,7 +273,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 			SExp* f_pair = f->getval(dlist);
 			if(f_pair == NULL) {
 				// f is not in the dlist
-				cerr << "Error: " << f->get_dot_notation() << " is not present in the dlist" << endl;
+				throw LispException("Error: " + f->get_dot_notation() + " is not present in the dlist");
 				return NULL;
 			}
 			SExp* f_definition = f_pair->cdr();
@@ -287,7 +287,7 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 		}
 	} else {
 		// F is not a symbolic atom
-		cerr << "Error: " << f->get_dot_notation() << " is not a valid function" << endl;
+		throw LispException("Error: " + f->get_dot_notation() + " is not a valid function");
 		// Throw Error
 		return NULL;
 	}
@@ -296,6 +296,8 @@ SExp* apply(SExp* f, SExp* x, SExp* alist) {
 SExp* eval(SExp* input, SExp* alist) {
 	SExp* T_exp = SExp::get_symbol(T);
 	SExp* NIL = SExp::get_symbol(nil);
+	if(input == NULL)
+		return NULL;
 	if(input->atom()) {
 		if(input->int_atom()) {
 			return input;
@@ -308,7 +310,7 @@ SExp* eval(SExp* input, SExp* alist) {
 		} else {
 			// Unbounded Atom
 			// Throw Error!!
-			cerr << "Error: " << input->get_dot_notation() << " is an Unbounded atom" << endl;
+			throw LispException("Error: " + input->get_dot_notation() + " is an Unbounded atom");
 			return NULL;
 		}
 	} else if(input->car()->sym_atom()) {
@@ -319,7 +321,7 @@ SExp* eval(SExp* input, SExp* alist) {
 				return input->cdr()->car();
 			}
 			// Incorrect number of arguments given to QUOTE or there is no NIL atom
-			cerr << "Error: QUOTE is not written properly!" << endl;
+			throw LispException("Error: QUOTE is not written properly!");
 			return NULL;
 		} else if(!f_name.compare(COND)) {
 			if(check_evcon(input->cdr()))
@@ -329,18 +331,18 @@ SExp* eval(SExp* input, SExp* alist) {
 			// Add the function definition to dlist
 			SExp* exp = input->cdr();
 			if(exp == NULL) {
-				cerr << "Error: DEFUN is not written properly" << endl;
+				throw LispException("Error: DEFUN is not written properly");
 				return NULL;
 			}
 			SExp* f = exp->car();
 			if(f == NULL) {
-				cerr << "Error: DEFUN is not written properly" << endl;
+				throw LispException("Error: DEFUN is not written properly");
 				return NULL;
 			}
 			SExp* parameters_list = exp->cdr()->car();
 			SExp* fb = exp->cdr()->cdr()->car();
 			if (parameters_list == NULL || fb == NULL) {
-				cerr << "Error: DEFUN is not written properly" << endl;
+				throw LispException("Error: DEFUN is not written properly");
 				return NULL;
 			}
 			SExp* parameters_and_fb = new SExp(parameters_list, fb);
@@ -354,7 +356,7 @@ SExp* eval(SExp* input, SExp* alist) {
 	} else {
 		// NOT a valid LISP expression
 		// Throw Error!!
-		cerr << "Error: " << input->car()->get_dot_notation() << " is not a special type or function name" << endl;
+		throw LispException("Error: " + input->car()->get_dot_notation() + " is not a special type or function name");
 		return NULL;
 	}
 }

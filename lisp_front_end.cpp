@@ -241,13 +241,18 @@ int main() {
 				continue;
 			}
 			// cout << "Trying to generate dot notation for : " << raw_s_expression << endl;
-			// string exp_dot_notation = exp->get_dot_notation();
-			// cout << "Dot Notation: " << exp_dot_notation << endl;
+			string exp_dot_notation = exp->get_dot_notation();
+			cout << "Dot Notation: " << exp_dot_notation << endl;
 			SExp* nil_atom = SExp::get_symbol(nil);
-			SExp* result = eval(exp, nil_atom);
-			if(result != NULL) {
-				// cout << "Original: " << exp->get_dot_notation() << endl;
-				cout << "Result: " << result->get_dot_notation() << endl << endl;
+			SExp* result;
+			try {
+				result = eval(exp, nil_atom);
+				if(result != NULL) {
+					// cout << "Original: " << exp->get_dot_notation() << endl;
+					cout << "Result: " << result->get_dot_notation() << endl << endl;
+				}
+			} catch(LispException& c) {
+				cout << "Error: " << c.what() << endl; 
 			}
 			raw_s_expression = "";
 		} else {

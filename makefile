@@ -7,4 +7,4 @@ s_tokenizer.o: s_tokenizer.cpp s_tokenizer.h
 SExp.o: SExp.cpp SExp.h
 	g++ -c SExp.cpp
 clean:
-	rm s_tokenizer.o SExp.o front_end.out
+	rm s_tokenizer.o SExp.o front_end.out lisp_back_end.o
